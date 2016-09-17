@@ -83,11 +83,28 @@ class LDAPObject(object):
     base = None
     filter = None
     required_attributes = []
+    required_objectclasses = []
 
     STATUS_UNKNOWN = 0
     STATUS_NEW = 1
     STATUS_REFERENCED = 2
     STATUS_FILLED = 3
+
+    @classmethod
+    def filter(cls):
+        """
+        Compute the filter regarding given required_attributes and required_objectclasses
+        class attributes.
+
+        :return: A string that hold the LDAP filter.
+        """
+        buffer = '(&'
+        for attr in cls.required_attributes:
+            buffer += '({}=*)'.format(attr)
+        for oc in cls.required_objectclasses:
+            buffer += '(objectClass={})'.format(oc)
+        buffer += ')'
+        return buffer
 
     def __init__(self, session):
         """
@@ -110,7 +127,7 @@ class LDAPObject(object):
         :return: an instance of class cls
         """
         entries = self._session.search(base=self.base,
-                                       ldap_filter="(&{}({}={}))".format(self.filter, attr, value),
+                                       ldap_filter="(&{}({}={}))".format(self.filter(), attr, value),
                                        attributes=attributes)
         return self.parse_single(entries)
 
@@ -225,7 +242,7 @@ class LDAPModelList(object):
 
     def all(self, sortattrs=None, attributes=None):
         entries = self._session.search(base=self.children.base,
-                                       ldap_filter=self.children.filter,
+                                       ldap_filter=self.children.filter(),
                                        scope=ldap.SCOPE_SUBTREE,
                                        attributes=attributes,
                                        sortattrs=sortattrs)
@@ -242,7 +259,7 @@ class LDAPModelList(object):
         :rtype: list
         """
         entries = self._session.search(base=self.children.base,
-                                       ldap_filter="(&{}({}={}))".format(self.children.filter, attr, value),
+                                       ldap_filter="(&{}({}={}))".format(self.children.filter(), attr, value),
                                        scope=ldap.SCOPE_SUBTREE,
                                        attributes=attributes,
                                        sortattrs=sortattrs)
