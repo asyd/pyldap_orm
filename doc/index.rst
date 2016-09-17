@@ -14,12 +14,13 @@ A simple example:
 
    from pyldap_orm import LDAPSession, LDAPModelException, LDAPObject
    from pyldap_orm import models
+   import logging
 
 
    class LDAPUser(models.LDAPModelUser):
        required_attributes = ['cn', 'uid']
+       required_objectclasses = ['inetOrgPerson']
        base = 'ou=People,dc=OpenCSI,dc=com'
-       filter = '(objectClass=inetOrgPerson)'
 
 
    class LDAPUsers(models.LDAPModelUsers):
@@ -41,6 +42,7 @@ A simple example:
 
 
    def main():
+       logging.basicConfig(level=logging.DEBUG)
        session = LDAPSession(backend='ldap://localhost:1389/')
        try:
            user = LDAPUser(session).by_attr('uid', 'bbo')
@@ -54,12 +56,6 @@ A simple example:
 
    if __name__ == '__main__':
        main()
-
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
 
 Getting started
 ===============
