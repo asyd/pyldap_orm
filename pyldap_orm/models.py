@@ -16,57 +16,45 @@ class LDAPModelUser(LDAPObject):
     """
     required_attributes = None
     base = None
-    filter = None
     membership_attribute = 'memberOf'
 
 
 class LDAPModelGroup(LDAPObject):
+    required_attributes = ['cn']
     name_attribute = 'cn'
 
 
 class LDAPModelUsers(LDAPModelList):
     children = None  # type: LDAPModelUser
 
-    def _by_membership_dn(self, dn):
+    def by_dn_membership(self, dn):
         """
         Find users belongs to group defined by dn. The search will be perform by create a LDAP filter as
-        (&groupFilter(membership_attribute=dn)).
+        (&(groupFilter)(membership_attribute=dn)).
+
         :param dn: The DN of the group to filter user by membership
         :return: a list of children instances.
         :rtype: list
         """
         entries = self._session.search(base=self.children.base,
-                                       ldap_filter="(&{}({}={}))".format(self.children.filter,
+                                       ldap_filter="(&{}({}={}))".format(self.children.filter(),
                                                                          self.children.membership_attribute,
                                                                          dn))
 
         return self._parse_multiple(entries)
 
-    def by_membership(self, dn=None, name=None, group_cls=None):
+    def by_name_membership(self, name, group_cls):
         """
-        Find users by group membership. The query may be performed by using either the full DN of the group,
-        or by providing a name, and the definition of a class than inherits LDAPModelGroup.
+        Find users that belongs the group name name.
 
-        The inherit is required to have access to the group definition, like the base dn, filter.
+        :param name: Name of the group. Use LDAPModelGroup.name_attribute as filter.
+        Default name_attribute is cn
 
-        :param name: (optional) The name of the group. Name will be found by performing a LDAP search request
-        using group_class.groupnameAttribute
-        :param dn: (optional) The DN of the group.
-        :param group_cls: (optional) name of LDAPModelGroup instance model
+        :param group_cls: Class that inherits LDAPModelGroup
         :type group_cls: LDAPModelGroup
-        :return:
+        :return: A list of LDAPObject
         """
-        if name is not None and dn is not None:
-            raise LDAPModelQueryException("Wrong usage of LDAPModelUsers.by_membership: either set name or dn")
-        if name is None and dn is None:
-            raise LDAPModelQueryException("Wrong usage of LDAPModelUsers.by_membership: either set name or dn")
-        if name is not None and group_cls is None:
-            raise LDAPModelQueryException(
-                "Wrong usage of LDAPModelUsers.by_membership: group_cls must be set to search by name")
-        if dn is not None:
-            return self._by_membership_dn(dn)
-        else:
-            # Since we just have the name, we must search the DN which have name_attribute: name
-            group = group_cls(session=self._session).by_attr(group_cls.name_attribute, name,
-                                                             attributes=[group_cls.name_attribute])
-            return self._by_membership_dn(group.dn)
+        group = group_cls(self._session).by_attr(group_cls.name_attribute,
+                                                 name,
+                                                 attributes=[group_cls.name_attribute])
+        return self.by_dn_membership(group.dn)
