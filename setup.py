@@ -8,4 +8,8 @@ setup(name='pyldap_orm',
       author_email='bbonfils@gmail.com',
       license='MIT',
       packages=['pyldap_orm'],
+      install_requires=[
+          'pyldap',
+          'pyasn1'
+      ],
       zip_safe=False)

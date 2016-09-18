@@ -9,6 +9,7 @@ This is core of pyldap_orm.
 import ldap
 import ldap.modlist
 import logging
+import pyldap_orm.controls
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,6 @@ class LDAPSession(object):
         """
         Perform a low level LDAP search (synchronous) using the given arguments.
 
-        :param _session: A LDAPSession instance
         :param base: Base DN of the search
         :param scope: Scope of the search, default is SCOPE_SUBTREE
         :param ldap_filter: ldap filter, default is '(objectClass=*)'
@@ -71,8 +71,17 @@ class LDAPSession(object):
         :param sortattrs: An array of attributes to use for sort the result. Only used if you server support ...
         :return: a list of tuples (dn, attributes)
         """
-        logger.debug("Performing LDAP search: base: {}, scope: {}, filter: {}".format(base, scope, ldap_filter))
-        return self._server.search_s(base, scope, ldap_filter, attributes)
+        if sortattrs is None:
+            logger.debug("Performing LDAP search: base: {}, scope: {}, filter: {}".format(base, scope, ldap_filter))
+            return self._server.search_s(base, scope, ldap_filter, attributes)
+        else:
+            logger.debug("Performing ext LDAP search: base: {}, scope: {}, filter: {}, sortattrs={}".
+                         format(base,
+                                scope,
+                                ldap_filter,
+                                sortattrs))
+            return self._server.search_ext_s(base, scope, ldap_filter, attrlist=attributes,
+                                             serverctrls=[pyldap_orm.controls.ServerSideSort(sortattrs)])
 
 
 class LDAPObject(object):
@@ -85,10 +94,9 @@ class LDAPObject(object):
     required_attributes = []
     required_objectclasses = []
 
-    STATUS_UNKNOWN = 0
     STATUS_NEW = 1
-    STATUS_REFERENCED = 2
-    STATUS_FILLED = 3
+    STATUS_SYNC = 2
+    STATUS_MODIFIED = 3
 
     @classmethod
     def filter(cls):
@@ -144,8 +152,26 @@ class LDAPObject(object):
         self._dn = dn
         for attr in attributes.keys():
             self._attributes[attr] = [value.decode() for value in attributes[attr]]
-        self._check()
+        self.check()
+        self._state = self.STATUS_SYNC
         return self
+
+    def check(self):
+        """
+        Override this method to perform post operations like remove unwanted values or perform
+        some business checks.
+
+        For example, if you want to remove groups that doesn't belong to your LDAPGroup.base
+        you can use the following code:
+
+        .. code-block:: python
+
+            for group in getattr(self, self.membership_attribute):
+                if LDAPGroup.base not in group:
+                getattr(self, self.membership_attribute).remove(group)
+
+        """
+        pass
 
     def parse_single(self, entries):
         """
@@ -159,20 +185,6 @@ class LDAPObject(object):
             raise LDAPModelQueryException(
                 "A query expected only single result returned {} entries".format(len(entries)))
         return self.parse(entries[0])
-
-    def _check(self):
-        """
-        Check if attributes defined by the required_attributes class value exists.
-
-        Otherwise, raise LDAPModelException
-        """
-        for attribute in self.required_attributes:
-            try:
-                self._attributes[attribute]
-            except KeyError:
-                raise LDAPModelException(
-                    "Object: {} match filter, but required attribute {} is missing".format(self._dn,
-                                                                                           attribute)) from None
 
     def attributes(self):
         """
@@ -210,6 +222,8 @@ class LDAPObject(object):
         if key == 'dn' or key[0] == '_':
             object.__setattr__(self, key, value)
         else:
+            if self._state > self.STATUS_SYNC:
+                self._state = self.STATUS_MODIFIED
             self._attributes[key] = value
 
 

@@ -3,28 +3,42 @@ Templates of current LDAP objects like user(s), group(s).
 
 You need to create your own class that inherits of one theses.
 
-You must setup :
-* required_attribues with an array of required attributes like ['uid', 'cn']
-* base is the root base dn to find instances of the object
+You must set:
+
+* required_attribues with an array of required attributes, like ['uid', 'cn']
+* base is the root base dn to find instances of the object, like 'ou=People,dc=example,dc=com'
+
 """
-from pyldap_orm.__init__ import LDAPObject, LDAPModelQueryException, LDAPModelList
+from pyldap_orm.__init__ import LDAPObject, LDAPModelList
 
 
 class LDAPModelUser(LDAPObject):
     """
-    This is
+    This is a basic template to manage a user.
     """
-    required_attributes = None
-    base = None
+    required_attributes = ['cn', 'uid']
+    required_objectclasses = ['inetOrgPerson']
     membership_attribute = 'memberOf'
 
 
 class LDAPModelGroup(LDAPObject):
+    """
+    LDAPModelGroup is a template to represent a group (of users). By default, the cn attribute is required and also
+    used as name attribute.
+    """
     required_attributes = ['cn']
+    required_objectclasses = ['groupOfNames']
     name_attribute = 'cn'
+    member_attribute = 'member'
 
 
 class LDAPModelUsers(LDAPModelList):
+    """
+    LDAPModelUsers is a template to represent a list of users. This template also add
+    the following specifics methods to search users:
+    * by_dn_membership
+    * by_name_membership
+    """
     children = None  # type: LDAPModelUser
 
     def by_dn_membership(self, dn):
