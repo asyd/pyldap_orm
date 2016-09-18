@@ -163,7 +163,7 @@ class LDAPObject(object):
         (dn, attributes) = entry
         self._dn = dn
         for attr in attributes.keys():
-            self._attributes[attr] = [value.decode() for value in attributes[attr]]
+            self._attributes[attr] = attributes[attr]
         self.check()
         self._state = self.STATUS_SYNC
         return self
@@ -238,10 +238,11 @@ class LDAPObject(object):
                     self._initial_attributes = dict(self._attributes)
             try:
                 if self._attributes[key] == value:
+                    # Skip if there is no change (aka current value is equal the new value)
                     return
-                print("Old value: {}, new value: {}".format(self._attributes[key], value))
             except KeyError:
-                print("Old value: None, new value: {}".format(value))
+                # It may be a new attribute
+                pass
             self._attributes[key] = value
 
     def save(self):
@@ -250,8 +251,7 @@ class LDAPObject(object):
         ldif = ldap.modlist.modifyModlist(self._initial_attributes, self._attributes)
         if len(ldif) == 0:
             return
-        # TODO: convert str to bytes
-        logger.debug("{}".format(ldif))
+        logger.debug("Updating object: {} with following updates: {}".format(self.dn, ldif))
         self._session.server.modify_s(self._dn, ldif)
         self._state = self.STATUS_SYNC
         self._initial_attributes = None
