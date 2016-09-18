@@ -1,9 +1,5 @@
 """
 This is core of pyldap_orm.
-
-
-:ref:`LDAPSession`
-
 """
 
 import ldap
@@ -58,6 +54,10 @@ class LDAPSession(object):
         else:
             logger.debug("LDAP _session: bind as anonymous")
             self._server.simple_bind_s()
+
+    @property
+    def server(self):
+        return self._server
 
     def search(self, base, scope=ldap.SCOPE_SUBTREE, ldap_filter='(objectClass=*)', attributes=None,
                sortattrs=None):
@@ -121,6 +121,7 @@ class LDAPObject(object):
         :type session: LDAPSession
         """
         self._attributes = dict()
+        self._initial_attributes = None
         self._dn = None
         self._state = self.STATUS_NEW
         self._session = session
@@ -209,9 +210,8 @@ class LDAPObject(object):
     def __getattr__(self, item):
         """
         Fallback for ldapModelInstance.attribute to return attribute value lists. Values comes from self._attributes.
-        Every values returned are List instances.
+        Every values returned are lists. The only exception is for dn, which returns a single string.
 
-        The only exception is for dn, which returns a single string.
         :param item: LDAP object attribute value
         :return: a list or a string when item is dn
         """
@@ -224,7 +224,7 @@ class LDAPObject(object):
         """
         Used to catch modifications on object to create a pyldap.modlist.
 
-        If key is dn or start by a _, call the real __setattr__, else update the _attributes dictionnary.
+        If key is dn or start by a _, call object.__setattr__(), else update the _attributes dictionary.
 
         :param key: key to update
         :param value: new value
@@ -232,13 +232,29 @@ class LDAPObject(object):
         if key == 'dn' or key[0] == '_':
             object.__setattr__(self, key, value)
         else:
-            if self._state >= self.STATUS_SYNC:
+            if self._state == self.STATUS_SYNC:
                 self._state = self.STATUS_MODIFIED
+                if self._initial_attributes is None:
+                    self._initial_attributes = dict(self._attributes)
             try:
+                if self._attributes[key] == value:
+                    return
                 print("Old value: {}, new value: {}".format(self._attributes[key], value))
             except KeyError:
                 print("Old value: None, new value: {}".format(value))
             self._attributes[key] = value
+
+    def save(self):
+        if self._state != self.STATUS_MODIFIED:
+            return
+        ldif = ldap.modlist.modifyModlist(self._initial_attributes, self._attributes)
+        if len(ldif) == 0:
+            return
+        # TODO: convert str to bytes
+        logger.debug("{}".format(ldif))
+        self._session.server.modify_s(self._dn, ldif)
+        self._state = self.STATUS_SYNC
+        self._initial_attributes = None
 
 
 class LDAPModelList(object):

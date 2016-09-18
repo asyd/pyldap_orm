@@ -61,9 +61,7 @@ class LDAPModelUsers(LDAPModelList):
         """
         Find users that belongs the group name name.
 
-        :param name: Name of the group. Use LDAPModelGroup.name_attribute as filter.
-        Default name_attribute is cn
-
+        :param name: Name of the group. Use LDAPModelGroup.name_attribute as filter. Default name_attribute is cn
         :param group_cls: Class that inherits LDAPModelGroup
         :type group_cls: LDAPModelGroup
         :return: A list of LDAPObject

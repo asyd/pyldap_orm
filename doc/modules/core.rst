@@ -1,5 +1,5 @@
-.. contents:: :local:
+Core module
+===========
 
 .. automodule:: pyldap_orm.core
     :members:
-
