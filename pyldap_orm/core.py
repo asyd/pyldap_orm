@@ -75,13 +75,14 @@ class LDAPSession(object):
             logger.debug("Performing LDAP search: base: {}, scope: {}, filter: {}".format(base, scope, ldap_filter))
             return self._server.search_s(base, scope, ldap_filter, attributes)
         else:
+            serverctrls = [pyldap_orm.controls.ServerSideSort(sortattrs)]
             logger.debug("Performing ext LDAP search: base: {}, scope: {}, filter: {}, sortattrs={}".
                          format(base,
                                 scope,
                                 ldap_filter,
-                                sortattrs))
+                                serverctrls))
             return self._server.search_ext_s(base, scope, ldap_filter, attrlist=attributes,
-                                             serverctrls=[pyldap_orm.controls.ServerSideSort(sortattrs)])
+                                             serverctrls=serverctrls)
 
 
 class LDAPObject(object):
