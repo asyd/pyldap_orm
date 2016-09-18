@@ -18,7 +18,7 @@ A very simple example:
        children = LDAPUser
 
 The following code demonstrates how to connect to the LDAP server using a LDAPSession, and then
-perform a by_attr search on a LDAPUser. The ``by_attr`` function returns an instance of ``LDAPuser`` you can
+search a LDAPUser by its ``uid``. The ``by_attr`` function returns an instance of ``LDAPuser`` you can
 use as dict with instance.dn to get the LDAP DN, or ``instance.attribute`` to get attributes values as a list.
 Note: even single valued attributes must be used as a list.
 

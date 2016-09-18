@@ -1,5 +1,5 @@
-Core module
-===========
+Core
+====
 
 .. automodule:: pyldap_orm.core
     :members:
