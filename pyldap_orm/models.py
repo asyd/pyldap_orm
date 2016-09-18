@@ -5,8 +5,8 @@ You need to create your own class that inherits of one theses.
 
 You must set:
 
-* required_attribues with an array of required attributes, like ['uid', 'cn']
-* base is the root base dn to find instances of the object, like 'ou=People,dc=example,dc=com'
+* ``required_attribues`` with an array of required attributes, like ``['uid', 'cn']``
+* ``base`` is the root base dn to find instances of the object, like ``ou=People,dc=example,dc=com``
 
 """
 from pyldap_orm.__init__ import LDAPObject, LDAPModelList
@@ -36,8 +36,10 @@ class LDAPModelUsers(LDAPModelList):
     """
     LDAPModelUsers is a template to represent a list of users. This template also add
     the following specifics methods to search users:
+
     * by_dn_membership
     * by_name_membership
+
     """
     children = None  # type: LDAPModelUser
 
