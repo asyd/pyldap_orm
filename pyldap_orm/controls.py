@@ -19,14 +19,14 @@ class ServerSideSort(ldap.controls.LDAPControl):
 
     def encodeControlValue(self):
         """
-        I only use a subset of the following Request Constrol:
+        The RFC define the following structure:
 
               SortKeyList ::= SEQUENCE OF SEQUENCE {
                  attributeType   AttributeDescription,
                  orderingRule    [0] MatchingRuleId OPTIONAL,
                  reverseOrder    [1] BOOLEAN DEFAULT FALSE }
 
-        Only attributeType is used.
+        However, is in this implementation, only attributeType can be used.
 
         :return: BER encoded value of attributes
         """
@@ -55,7 +55,7 @@ class PasswordModify(ldap.extop.ExtendedRequest):
     Reference: https://www.ietf.org/rfc/rfc3062.txt
     """
 
-    def __init__(self, identity, current, new):
+    def __init__(self, identity, new, current=None):
         self.requestName = '1.3.6.1.4.1.4203.1.11.1'
         self.identity = identity
         self.new = new
@@ -64,7 +64,8 @@ class PasswordModify(ldap.extop.ExtendedRequest):
     def encodedRequestValue(self):
         request = self.PasswdModifyRequestValue()
         request.setComponentByName('userIdentity', self.identity)
-        request.setComponentByName('oldPasswd', self.current)
+        if self.current is not None:
+            request.setComponentByName('oldPasswd', self.current)
         request.setComponentByName('newPasswd', self.new)
         return pyasn1.codec.ber.encoder.encode(request)
 

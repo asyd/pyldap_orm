@@ -125,6 +125,16 @@ class LDAPObject(object):
         self._state = self.STATUS_NEW
         self._session = session
 
+    def by_dn(self, dn, attributes=None):
+        """
+        Request an object by its DN.
+
+        :param dn: DN of the LDAP object to query
+        :param attributes: Optional array of attributes to returned, if none, all standard attributes are returned.
+        :return: An instance of current LDAPObject inheritance
+        """
+        return self.parse_single(self._session.search(dn, scope=ldap.SCOPE_BASE, attributes=attributes))
+
     def by_attr(self, attr, value, attributes=None):
         """
         Search an object by adding a LDAP filter (&(..)(attr=value), where (..) is the search attribute
@@ -212,19 +222,22 @@ class LDAPObject(object):
 
     def __setattr__(self, key, value):
         """
-        Used to catch object.cn = ['Bruno Bonfils'] usage.
+        Used to catch modifications on object to create a pyldap.modlist.
 
-        If key start by a _, call the real __setattr__, else update the _attributes[key]
-        value.
-        :param key:
-        :param value:
-        :return:
+        If key is dn or start by a _, call the real __setattr__, else update the _attributes dictionnary.
+
+        :param key: key to update
+        :param value: new value
         """
         if key == 'dn' or key[0] == '_':
             object.__setattr__(self, key, value)
         else:
-            if self._state > self.STATUS_SYNC:
+            if self._state >= self.STATUS_SYNC:
                 self._state = self.STATUS_MODIFIED
+            try:
+                print("Old value: {}, new value: {}".format(self._attributes[key], value))
+            except KeyError:
+                print("Old value: None, new value: {}".format(value))
             self._attributes[key] = value
 
 
@@ -270,6 +283,7 @@ class LDAPModelList(object):
         :param attr:  Attribute to search
         :param value: Attribute value
         :param attributes: An optional array of the expected attributes returned by the search
+        :param sortattrs: An optional array with attributes to request server side sorting
         :return: A list of self.children
         :rtype: list
         """
