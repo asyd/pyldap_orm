@@ -89,7 +89,7 @@ class LDAPObject(object):
     """
     LDAPObject is one of the core class of the ORM. It represent an LDAP object.
     """
-    name_attribute = 'cn'
+    name_attribute = None
     base = None
     filter = None
     required_attributes = []
@@ -115,7 +115,7 @@ class LDAPObject(object):
         buffer += ')'
         return buffer
 
-    def __init__(self, session):
+    def __init__(self, session=None):
         """
         :param session: a LDAPSession instance used to perform operations on a LDAP server.
         :type session: LDAPSession
@@ -193,7 +193,9 @@ class LDAPObject(object):
         :return:
         :type entries: list
         """
-        if len(entries) != 1:
+        if len(entries) == 0:
+            raise LDAPModelQueryException("No entry found")
+        elif len(entries) > 1:
             raise LDAPModelQueryException(
                 "A query expected only single result returned {} entries".format(len(entries)))
         return self.parse(entries[0])
@@ -229,7 +231,9 @@ class LDAPObject(object):
         :param key: key to update
         :param value: new value
         """
-        if key == 'dn' or key[0] == '_':
+        if key == 'dn':
+            object.__setattr__(self, '_dn', value)
+        elif key[0] == '_':
             object.__setattr__(self, key, value)
         else:
             if self._state == self.STATUS_SYNC:
@@ -246,13 +250,52 @@ class LDAPObject(object):
             self._attributes[key] = value
 
     def save(self):
-        if self._state != self.STATUS_MODIFIED:
+        """
+        This method is a bit magic. Depending on the object state you called it, it can create
+        or update an existing object.
+
+        There is even more magic when you create a new object. If the _dn attribute is not set (None),
+        it will be computed from the name_attribute, and the base.
+
+        If there is objectClass defined, the required_objectclasses will be used.
+
+        Last, verify that all attributes from required_attributes exists.
+
+        """
+        # Do nothing if state is not NEW or MODIFIED
+        if self._state not in (self.STATUS_NEW, self.STATUS_MODIFIED):
             return
-        ldif = ldap.modlist.modifyModlist(self._initial_attributes, self._attributes)
-        if len(ldif) == 0:
-            return
-        logger.debug("Updating object: {} with following updates: {}".format(self.dn, ldif))
-        self._session.server.modify_s(self._dn, ldif)
+
+        if self._state == self.STATUS_MODIFIED:
+            # If status is MODIFIED, compute a modifyModList from _initial_attributes and _attributes.
+            ldif = ldap.modlist.modifyModlist(self._initial_attributes, self._attributes)
+            # Do nothing if there is no changes
+            if len(ldif) == 0:
+                return
+            logger.debug("Updating object: {} with following updates: {}".format(self.dn, ldif))
+            self._session.server.modify_s(self._dn, ldif)
+        elif self._state == self.STATUS_NEW:
+            # If objectClass is not defined, fill it by using required_objectclasses
+            try:
+                getattr(self._attributes, 'objectClass')
+            except AttributeError:
+                self._attributes['objectClass'] = [value.encode("UTF-8") for value in self.required_objectclasses]
+            # Check if attributes in required_attributes are defined
+            for attr in self.required_attributes:
+                try:
+                    getattr(self, attr)
+                except KeyError:
+                    raise LDAPModelException("A required attribute is not defined: {}".format(attr)) from None
+            # If dn is none, set it using <name_attribute> = <value>[0], <base>
+            if self._dn is None:
+                self._dn = "{}={},{}".format(self.name_attribute,
+                                             getattr(self, self.name_attribute)[0].decode('UTF-8'),
+                                             self.base)
+
+            ldif = ldap.modlist.addModlist(self._attributes)
+            logger.debug("Adding new object: {}".format(self._dn))
+            self._session.server.add_s(self._dn, ldif)
+
         self._state = self.STATUS_SYNC
         self._initial_attributes = None
 
@@ -280,7 +323,7 @@ class LDAPModelList(object):
 
     def _parse_multiple(self, entries):
         for entry in entries:
-            current = self.children(None).parse(entry)
+            current = self.children().parse(entry)
             self._objects.append(current)
         return self._objects
 
