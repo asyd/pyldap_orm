@@ -5,7 +5,6 @@ This is core of pyldap_orm.
 import ldap
 import ldap.modlist
 import logging
-import pyldap_orm.controls
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class LDAPSession(object):
         return self._server
 
     def search(self, base, scope=ldap.SCOPE_SUBTREE, ldap_filter='(objectClass=*)', attributes=None,
-               sortattrs=None):
+               serverctrls=None):
         """
         Perform a low level LDAP search (synchronous) using the given arguments.
 
@@ -68,14 +67,13 @@ class LDAPSession(object):
         :param scope: Scope of the search, default is SCOPE_SUBTREE
         :param ldap_filter: ldap filter, default is '(objectClass=*)'
         :param attributes: An array of attributes to return, default is ['*']
-        :param sortattrs: An array of attributes to use for sort the result. Only used if you server support ...
+        :param serverctrls: An array server extended controls
         :return: a list of tuples (dn, attributes)
         """
-        if sortattrs is None:
+        if serverctrls is None:
             logger.debug("Performing LDAP search: base: {}, scope: {}, filter: {}".format(base, scope, ldap_filter))
             return self._server.search_s(base, scope, ldap_filter, attributes)
         else:
-            serverctrls = [pyldap_orm.controls.ServerSideSort(sortattrs)]
             logger.debug("Performing ext LDAP search: base: {}, scope: {}, filter: {}, sortattrs={}".
                          format(base,
                                 scope,
@@ -323,12 +321,12 @@ class LDAPModelList(object):
             self._objects.append(current)
         return self._objects
 
-    def all(self, sortattrs=None, attributes=None):
+    def all(self, attributes=None, serverctrls=None):
         entries = self._session.search(base=self.children.base,
                                        ldap_filter=self.children.filter(),
                                        scope=ldap.SCOPE_SUBTREE,
                                        attributes=attributes,
-                                       sortattrs=sortattrs)
+                                       serverctrls=serverctrls)
         return self._parse_multiple(entries)
 
     def by_attr(self, attr, value, attributes=None, sortattrs=None):
