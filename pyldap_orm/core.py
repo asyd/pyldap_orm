@@ -29,11 +29,15 @@ class LDAPSession(object):
       - OpenDJ
       - OpenLDAP
     """
+    PLAIN = 0
+    STARTTLS = 1
+    LDAPS = 2
+
     bind_dn = None
     credential = None
     backend = None
 
-    def __init__(self, backend, bind_dn=None, credential=None):
+    def __init__(self, backend, bind_dn=None, credential=None, mode=PLAIN):
         """
         Create a LDAPSession by connecting to the LDAP server, and perform optional initial bind if bind_dn and
         credential are defined, otherwise perform an anonymous bind.
@@ -44,9 +48,18 @@ class LDAPSession(object):
         """
         self.backend = backend
         self.bind_dn = bind_dn
+        self.mode = mode
         self.credential = credential
         logger.debug("LDAP _session created, id: {}".format(id(self)))
+
+        if self.mode in (self.STARTTLS, self.LDAPS):
+            ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, '/etc/ssl/certs')
+
         self._server = ldap.initialize(self.backend)
+
+        if self.mode == self.STARTTLS:
+            self._server.start_tls_s()
+
         if self.bind_dn is not None and self.credential is not None:
             logger.debug("LDAP _session: bind as {}".format(self.bind_dn))
             self._server.simple_bind_s(self.bind_dn, self.credential)
