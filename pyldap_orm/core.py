@@ -37,7 +37,8 @@ class LDAPSession(object):
     credential = None
     backend = None
 
-    def __init__(self, backend, bind_dn=None, credential=None, mode=PLAIN):
+    def __init__(self, backend, bind_dn=None, credential=None, mode=PLAIN,
+                 cacertdir='/etc/ssl/certs'):
         """
         Create a LDAPSession by connecting to the LDAP server, and perform optional initial bind if bind_dn and
         credential are defined, otherwise perform an anonymous bind.
@@ -45,15 +46,19 @@ class LDAPSession(object):
         :param backend: a LDAP URI like ldap://host:port
         :param bind_dn:
         :param credential:
+        :param mode: Transport mode, must be self.PLAIN (the default), self.STARTTLS or self.LDAPS
+        :param cacertdir: Directory of CA certificates, default is /etc/ssl/certs
         """
         self.backend = backend
         self.bind_dn = bind_dn
         self.mode = mode
         self.credential = credential
+        self.cacertdir = cacertdir
+
         logger.debug("LDAP _session created, id: {}".format(id(self)))
 
         if self.mode in (self.STARTTLS, self.LDAPS):
-            ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, '/etc/ssl/certs')
+            ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, self.cacertdir)
 
         self._server = ldap.initialize(self.backend)
 
