@@ -5,16 +5,9 @@ This is core of pyldap_orm.
 import ldap
 import ldap.modlist
 import logging
+from pyldap_orm.exceptions import *
 
 logger = logging.getLogger(__name__)
-
-
-class LDAPModelException(Exception):
-    pass
-
-
-class LDAPModelQueryException(LDAPModelException):
-    pass
 
 
 class LDAPSession(object):
@@ -64,18 +57,28 @@ class LDAPSession(object):
         # Set CACERTDIR if using encryption
         if mode in (self.STARTTLS, self.LDAPS):
             ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, cacertdir)
+            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 
         if cert is not None and key is not None:
             ldap.set_option(ldap.OPT_X_TLS_CERTFILE, cert)
             ldap.set_option(ldap.OPT_X_TLS_KEYFILE, key)
 
-        self._server = ldap.initialize(self.backend)
+        try:
+            self._server = ldap.initialize(self.backend)
+        except ldap.SERVER_DOWN:
+            pass
 
         if mode == self.STARTTLS:
-            self._server.start_tls_s()
+            try:
+                self._server.start_tls_s()
+            except ldap.LDAPError as e:
+                catch_ldap_exception(e)
             # Perform a SASL binding with EXTERNAL mechanism
             if cert is not None and key is not None:
-                self._server.sasl_bind_s(None, 'EXTERNAL', None)
+                try:
+                    self._server.sasl_bind_s(None, 'EXTERNAL', None)
+                except ldap.LDAPError as e:
+                    catch_ldap_exception(e)
         else:
             if bind_dn is not None and credential is not None:
                 logger.debug("LDAP _session: bind as {}".format(bind_dn))
@@ -309,7 +312,7 @@ class LDAPObject(object):
                 try:
                     getattr(self, attr)
                 except KeyError:
-                    raise LDAPModelException("A required attribute is not defined: {}".format(attr)) from None
+                    raise LDAPORMException("A required attribute is not defined: {}".format(attr)) from None
             # If dn is none, set it using <name_attribute> = <value>[0], <base>
             if self._dn is None:
                 self._dn = "{}={},{}".format(self.name_attribute,
