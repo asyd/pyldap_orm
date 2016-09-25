@@ -107,7 +107,7 @@ class LDAPSession(object):
             logger.debug("Performing LDAP search: base: {}, scope: {}, filter: {}".format(base, scope, ldap_filter))
             return self._server.search_s(base, scope, ldap_filter, attributes)
         else:
-            logger.debug("Performing ext LDAP search: base: {}, scope: {}, filter: {}, sortattrs={}".
+            logger.debug("Performing ext LDAP search: base: {}, scope: {}, filter: {}, serverctrls={}".
                          format(base,
                                 scope,
                                 ldap_filter,
