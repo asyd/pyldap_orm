@@ -2,7 +2,6 @@
 This is core of pyldap_orm.
 """
 
-import ldap
 import ldap.modlist
 import logging
 from pyldap_orm.exceptions import *
@@ -12,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 class LDAPSession(object):
     """
-    LDAPSession represents a connection to a LDAP server. For the moment, only plain LDAP is supported.
-    STARTTLS and TLS will be supported in the a future release.
+    LDAPSession represents a connection to a LDAP server.
 
     This class also manage initial binding if required. If no credentials are given, an anonymous bind
     will be performed.
