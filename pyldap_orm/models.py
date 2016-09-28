@@ -65,7 +65,7 @@ class LDAPModelUsers(LDAPModelList):
 
         :param name: Name of the group. Use LDAPModelGroup.name_attribute as filter. Default name_attribute is cn
         :param group_cls: Class that inherits LDAPModelGroup
-        :type group_cls: LDAPModelGroup
+        :type group_cls: LDAPModelGroup()
         :return: A list of LDAPObject
         """
         group = group_cls(self._session).by_attr(group_cls.name_attribute,
