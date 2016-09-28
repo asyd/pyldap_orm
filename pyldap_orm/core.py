@@ -125,6 +125,9 @@ class LDAPSession(object):
             return self._server.search_ext_s(base, scope, ldap_filter, attrlist=attributes,
                                              serverctrls=serverctrls)
 
+    def whoami(self):
+        return self.server.whoami_s().split(':')[1]
+
 
 class LDAPObject(object):
     """
