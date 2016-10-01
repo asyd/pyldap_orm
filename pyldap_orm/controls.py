@@ -1,3 +1,6 @@
+# Authors: Bruno Bonfils
+# Copyright: Bruno Bonfils
+# License: Apache License version2
 import ldap.controls
 import pyasn1.type.univ
 import pyasn1.codec.ber.encoder

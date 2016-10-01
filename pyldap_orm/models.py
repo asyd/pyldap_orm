@@ -1,3 +1,6 @@
+# Authors: Bruno Bonfils
+# Copyright: Bruno Bonfils
+# License: Apache License version2
 """
 Templates of current LDAP objects like user(s), group(s).
 

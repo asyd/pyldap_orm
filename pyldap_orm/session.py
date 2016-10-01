@@ -1,3 +1,7 @@
+# Authors: Bruno Bonfils
+# Copyright: Bruno Bonfils
+# License: Apache License version2
+
 import ldap
 import logging
 from pyldap_orm.exceptions import catch_ldap_exception

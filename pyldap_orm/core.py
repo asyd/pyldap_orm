@@ -2,6 +2,10 @@
 This is core of pyldap_orm.
 """
 
+# Authors: Bruno Bonfils
+# Copyright: Bruno Bonfils
+# License: Apache License version2
+
 import ldap.modlist
 import logging
 from pyldap_orm.exceptions import *
