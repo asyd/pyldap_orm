@@ -23,6 +23,15 @@ class LDAPObject(object):
     STATUS_SYNC = 2
     STATUS_MODIFIED = 3
 
+    OID_TO_STR = ['1.3.6.1.4.1.1466.115.121.1.12',  # DN
+                  '1.3.6.1.4.1.1466.115.121.1.15',  # Directory String
+                  '1.3.6.1.4.1.1466.115.121.1.26',  # IA String
+                  '1.3.6.1.4.1.1466.115.121.1.27',  # Integer
+                  '1.3.6.1.4.1.1466.115.121.1.37',  # Object Class
+                  '1.3.6.1.4.1.1466.115.121.1.50',  # Telephone number
+                  '1.3.6.1.4.1.1466.115.121.1.38',  # OID
+                  ]
+
     def __init__(self, session):
         """
         :param session: a LDAPSession instance used to perform operations on a LDAP server.
@@ -86,8 +95,17 @@ class LDAPObject(object):
         """
         (dn, attributes) = entry
         self._dn = dn
+        # Save initial attributes values, used for ldapmodify
+        self._initial_attributes = attributes
         for attr in attributes.keys():
-            self._attributes[attr] = attributes[attr]
+            try:
+                # Decode to string some attribute, regarding the syntax hey use
+                if self._session.schema['attributes'][attr][0] in self.OID_TO_STR:
+                    self._attributes[attr] = [value.decode() for value in attributes[attr]]
+                else:
+                    self._attributes[attr] = attributes[attr]
+            except KeyError:
+                self._attributes[attr] = attributes[attr]
         self.check()
         self._state = self.STATUS_SYNC
         return self
@@ -158,8 +176,6 @@ class LDAPObject(object):
         else:
             if self._state == self.STATUS_SYNC:
                 self._state = self.STATUS_MODIFIED
-                if self._initial_attributes is None:
-                    self._initial_attributes = dict(self._attributes)
             try:
                 if self._attributes[key] == value:
                     # Skip if there is no change (aka current value is equal the new value)
@@ -188,6 +204,12 @@ class LDAPObject(object):
 
         if self._state == self.STATUS_MODIFIED:
             # If status is MODIFIED, compute a modifyModList from _initial_attributes and _attributes.
+            raw_attributes = self._attributes
+            # New to convert to bytes if values are in strings
+            for attribute in raw_attributes.keys():
+                if self._session.schema['attributes'][attribute][0] in self.OID_TO_STR:
+                    raw_attributes[attribute] = [value.encode('UTF-8') for value in raw_attributes[attribute]]
+
             ldif = ldap.modlist.modifyModlist(self._initial_attributes, self._attributes)
             # Do nothing if there is no changes
             if len(ldif) == 0:
@@ -195,24 +217,35 @@ class LDAPObject(object):
             logger.debug("Updating object: {} with following updates: {}".format(self.dn, ldif))
             self._session.server.modify_s(self._dn, ldif)
         elif self._state == self.STATUS_NEW:
-            # If objectClass is not defined, fill it by using required_objectclasses
-            try:
-                getattr(self._attributes, 'objectClass')
-            except AttributeError:
-                self._attributes['objectClass'] = [value.encode("UTF-8") for value in self.required_objectclasses]
             # Check if attributes in required_attributes are defined
             for attr in self.required_attributes:
                 try:
                     getattr(self, attr)
                 except KeyError:
                     raise LDAPORMException("A required attribute is not defined: {}".format(attr)) from None
+
+            raw_attributes = dict()
+            # If objectClass is not defined, fill it by using required_objectclasses
+            try:
+                getattr(self._attributes, 'objectClass')
+            except AttributeError:
+                raw_attributes['objectClass'] = [value.encode("UTF-8") for value in self.required_objectclasses]
+
             # If dn is none, set it using <name_attribute> = <value>[0], <base>
             if self._dn is None:
+                name_attribute_value = getattr(self, self.name_attribute)[0]
+                if self._session.schema['attributes'][self.name_attribute][0] not in self.OID_TO_STR:
+                    name_attribute_value = name_attribute_value.decode('UTF-8')
                 self._dn = "{}={},{}".format(self.name_attribute,
-                                             getattr(self, self.name_attribute)[0].decode('UTF-8'),
+                                             name_attribute_value,
                                              self.base)
 
-            ldif = ldap.modlist.addModlist(self._attributes)
+            # Convert all attributes in str to bytes
+            for attribute in self._attributes.keys():
+                if self._session.schema['attributes'][attribute][0] in self.OID_TO_STR:
+                    raw_attributes[attribute] = [value.encode('UTF-8') for value in self._attributes[attribute]]
+
+            ldif = ldap.modlist.addModlist(raw_attributes)
             logger.debug("Adding new object: {}".format(self._dn))
             self._session.server.add_s(self._dn, ldif)
 
@@ -241,7 +274,7 @@ class LDAPModelList(object):
 
     def _parse_multiple(self, entries):
         for entry in entries:
-            current = self.children(None).parse(entry)
+            current = self.children(self._session).parse(entry)
             self._objects.append(current)
         return self._objects
 

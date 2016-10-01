@@ -48,6 +48,7 @@ class LDAPSession(object):
         self.backend = backend
         self.bind_dn = bind_dn
         self._server = None
+        self._schema = {}
 
         logger.debug("LDAP _session created, id: {}".format(id(self)))
 
@@ -93,6 +94,8 @@ class LDAPSession(object):
                 logger.debug("LDAP _session: bind as anonymous")
                 self._server.simple_bind_s()
 
+        self.parse_schema()
+
     @property
     def server(self):
         return self._server
@@ -123,3 +126,39 @@ class LDAPSession(object):
 
     def whoami(self):
         return self.server.whoami_s().split(':')[1]
+
+    def parse_schema(self):
+        """
+        Create self.schema['attributes] dictionary with
+        :return:
+        """
+        def get_attribute_syntax(attr_name):
+            """
+            Get some information about an attributeType, directly or by a potential inheritance.
+
+            :param attr_name: Name of the attribute
+            :return: a tuple with (SYNTAX_OID, Boolean) where boolean is True if the attribute is single valued.
+            """
+            attribute = schema.get_obj(ldap.schema.AttributeType, attr_name)
+            if attribute.syntax is None:
+                return get_attribute_syntax(attribute.sup[0])
+            return attribute.syntax, attribute.single_value
+
+        self._schema['attributes'] = {}
+        self._schema['objectClass'] = {}
+        # TODO: base must be discovered from server (using subSchemaEntry)
+        request = self.server.search_s(base='cn=schema', scope=ldap.SCOPE_BASE, attrlist=['+'])
+        schema = ldap.schema.SubSchema(request[0][1])
+
+        for attr in schema.tree(ldap.schema.AttributeType):
+            definition = schema.get_obj(ldap.schema.AttributeType, attr)
+            if definition is not None:
+                syntax = get_attribute_syntax(definition.names[0])
+                for attribute_name in definition.names:
+                    self._schema['attributes'][attribute_name] = (syntax[0], definition.single_value)
+
+        self._schema['attributes']['memberOf'] = ('1.3.6.1.4.1.1466.115.121.1.12', False)
+
+    @property
+    def schema(self):
+        return self._schema
