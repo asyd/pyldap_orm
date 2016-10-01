@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 class LDAPObject(object):
     """
     LDAPObject is one of the core class of the ORM. It represent an LDAP object.
+
+    :param session: an optional LDAPSession instance used to perform operations on a LDAP server.
+    :type session: LDAPSession
     """
     name_attribute = 'cn'
     base = None
@@ -37,10 +40,6 @@ class LDAPObject(object):
                   ]
 
     def __init__(self, session):
-        """
-        :param session: a LDAPSession instance used to perform operations on a LDAP server.
-        :type session: LDAPSession
-        """
         self._attributes = dict()
         self._initial_attributes = None
         self._dn = None
@@ -191,13 +190,13 @@ class LDAPObject(object):
 
     def save(self):
         """
-        This method is a bit magic. Depending on the object state you called it, it can create
+        This method is a little magic. Depending on the object state you called it, it can create
         or update an existing object.
 
         There is even more magic when you create a new object. If the _dn attribute is not set (None),
         it will be computed from the name_attribute, and the base.
 
-        If there is objectClass defined, the required_objectclasses will be used.
+        If there is no objectClass defined, the required_objectclasses will be used.
 
         Last, verify that all attributes from required_attributes exists.
 
@@ -259,19 +258,14 @@ class LDAPObject(object):
 
 class LDAPModelList(object):
     """
-    A list of LDAPObject instances
+    Manages a list of ``LDAPObject`` instances.
+
+    :param session: An optional instance of LDAPSession.
+    :type session: LDAPSession
     """
     children = None  # type: LDAPObject()
 
     def __init__(self, session=None):
-        """
-        Create a list of objects, each object will be an instance of self.children (expected a class than inherits
-        of LDAPModel).
-
-        :param session: An optional instance of LDAPSession. This parameter must be defined for methods that
-         required access to the LDAP server, like search, bind, etc.
-        :type session: LDAPSession
-        """
         self._objects = list()
         self._dn = None
         self._session = session

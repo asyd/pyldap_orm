@@ -12,11 +12,13 @@ LDAP server.
     :caption: Getting started
 
     getting_started
+    example
 
 .. toctree::
     :maxdepth: 2
     :caption: Developer reference
 
+    modules/session
     modules/core
     modules/models
 
