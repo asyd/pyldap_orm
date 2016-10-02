@@ -1,6 +1,15 @@
 Getting started
 ===============
 
+Before using PyORM, there are three steps:
+
+* Define models
+* Create a session
+* Perform authentication
+
+Models
+------
+
 In a first time, you must define which kind of business objects you want to manage. Some base models are available
 in the ``pyldap_orm.models`` module.
 
@@ -19,6 +28,9 @@ in the ``pyldap_orm.models`` module.
         children = LDAPUser
 
 
+Session
+-------
+
 Then, you need to create a connection to the LDAP server, using ``LDAPSession`` object.
 
 The following connection methods are available:
@@ -27,17 +39,63 @@ The following connection methods are available:
 * LDAPs (url start with ``ldaps://``)
 * STARTTLS (url with ``ldap://``, and ``mode=LDAPSession.STARTTLS``)
 
+You can also provide ``cert`` and ``key`` arguments to provide a client certificate negociation. This is required
+to perform ``AUTH_SASL_EXTERNAL`` authentication.
+
+.. code-block:: python
+    :caption: Plain LDAP session
+
+    session = LDAPSession(backend='ldap://localhost:1389/')
+
+.. code-block:: python
+    :caption: LDAPS session
+
+    session = LDAPSession(backend='ldaps://localhost:1636/')
+
+.. code-block:: python
+    :caption: StartTLS session
+
+    session = LDAPSession(backend='ldap://localhost:1389/', mode=self.STARTTLS)
+
+.. code-block:: python
+    :caption: StartTLS with client certificate
+
+    session = LDAPSession(backend='ldap://localhost:1389/',
+                          mode=LDAPSession.STARTTLS,
+                          cert='/home/asyd/Downloads/bbonfils-test.pem',
+                          key='/home/asyd/Downloads/bbonfils-test.pem')
+
+
+Authentication
+--------------
+
+And then, you need to authenticate to the server.
+
 The following authentication methods are available:
 
 * Anonymous binding (no ``bind_dn`` and ``credential`` provided)
 * Simple bind (define ``bind_dn`` and ``credential``)
-* SASL EXTERNAL MECH (define ``sasl=LDAPSession.SASL_EXTERNAL``, ``cert`` and ``key``)
+* SASL EXTERNAL MECH (define ``mode=LDAPSession.AUTH_SASL_EXTERNAL``, ``cert`` and ``key``)
 
 .. code-block:: python
+    :caption: Simple bind authentication
 
-    session = LDAPSession(backend='ldap://localhost:1389/')
+    session.authenticate(bind_dn='cn=LDAP Manager,ou=Services,dc=OpenCSI,dc=com',
+                         credential='password')
 
-Then, you can perform a search by ``uid`` attribute, and print the user's dn using the following code:
+
+.. code-block:: python
+    :caption: SASL EXTERNAL authentication
+
+    session.authenticate(mode=LDAPSession.AUTH_SASL_EXTERNAL)
+
+
+Search
+------
+
+Finally, you can now performs some search. For example by ``uid`` attribute, and print the user's
+dn using the following code:
+
 
 .. code-block:: python
 
