@@ -24,14 +24,14 @@ class LDAPSession(object):
     STARTTLS = 1
     LDAPS = 2
 
-    SASL_EXTERNAL = 1
+    AUTH_SIMPLE_BIND = 0
+    AUTH_SASL_EXTERNAL = 1
 
     bind_dn = None
     credential = None
     backend = None
 
-    def __init__(self, backend, bind_dn=None, credential=None, mode=PLAIN,
-                 sasl=None,
+    def __init__(self, backend, mode=PLAIN,
                  cert=None,
                  key=None,
                  cacertdir='/etc/ssl/certs',
@@ -50,9 +50,10 @@ class LDAPSession(object):
         :param cacertdir: Directory of CA certificates, default is /etc/ssl/certs
         """
         self.backend = backend
-        self.bind_dn = bind_dn
         self._server = None
         self._schema = {}
+        self._cert = cert
+        self._key = key
 
         logger.debug("LDAP _session created, id: {}".format(id(self)))
 
@@ -65,7 +66,7 @@ class LDAPSession(object):
             ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, cacertdir)
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 
-        # Set client certificate is both cert and key are provided
+        # Set client certificate if both cert and key are provided
         if cert is not None and key is not None:
             ldap.set_option(ldap.OPT_X_TLS_CERTFILE, cert)
             ldap.set_option(ldap.OPT_X_TLS_KEYFILE, key)
@@ -82,21 +83,24 @@ class LDAPSession(object):
             except ldap.LDAPError as e:
                 catch_ldap_exception(e)
 
-        # Perform a SASL binding with EXTERNAL mechanism if cert and key are provided
-        if cert is not None and key is not None and sasl == self.SASL_EXTERNAL:
-            try:
-                # No need to set bind_dn and credential, the server will use the certificate to map a LDAP entry
-                self._server.sasl_bind_s(None, 'EXTERNAL', None)
-            except ldap.LDAPError as e:
-                catch_ldap_exception(e)
-        # Otherwise, use simple_bind_s
-        else:
+    def authenticate(self, bind_dn=None, credential=None, mode=AUTH_SIMPLE_BIND):
+        if mode == self.AUTH_SIMPLE_BIND:
             if bind_dn is not None and credential is not None:
                 logger.debug("LDAP _session: bind as {}".format(bind_dn))
                 self._server.simple_bind_s(bind_dn, credential)
             else:
                 logger.debug("LDAP _session: bind as anonymous")
                 self._server.simple_bind_s()
+        elif mode == self.AUTH_SASL_EXTERNAL:
+            if self._cert is None or self._key is None:
+                raise LDAPSessionException(
+                    "Client certificate and key must be provided to use SASL_EXTERNAL authenticiation")
+            else:
+                try:
+                    # No need to set bind_dn and credential, the server will use the certificate to map a LDAP entry
+                    self._server.sasl_bind_s(None, 'EXTERNAL', None)
+                except ldap.LDAPError as e:
+                    catch_ldap_exception(e)
 
         self.parse_schema()
 
