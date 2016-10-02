@@ -21,6 +21,18 @@ in the ``pyldap_orm.models`` module.
 
 Then, you need to create a connection to the LDAP server, using ``LDAPSession`` object.
 
+The following connection methods are available:
+
+* LDAP (url start with ``ldap://``)
+* LDAPs (url start with ``ldaps://``)
+* STARTTLS (url with ``ldap://``, and ``mode=LDAPSession.STARTTLS``)
+
+The following authentication methods are available:
+
+* Anonymous binding (no ``bind_dn`` and ``credential`` provided)
+* Simple bind (define ``bind_dn`` and ``credential``)
+* SASL EXTERNAL MECH (define ``sasl=LDAPSession.SASL_EXTERNAL``, ``cert`` and ``key``)
+
 .. code-block:: python
 
     session = LDAPSession(backend='ldap://localhost:1389/')
