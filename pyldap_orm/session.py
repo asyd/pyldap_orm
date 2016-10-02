@@ -4,7 +4,7 @@
 
 import ldap
 import logging
-from pyldap_orm.exceptions import catch_ldap_exception
+from pyldap_orm.exceptions import catch_ldap_exception, LDAPSessionException
 
 logger = logging.getLogger(__name__)
 
@@ -137,9 +137,10 @@ class LDAPSession(object):
 
     def parse_schema(self):
         """
-        Create self.schema['attributes] dictionary with
-        :return:
+        Create self.schema['attributes] dictionary where values are a tuple holding the syntax oid and a boolean
+        (true if the attribute is single valued)
         """
+
         def get_attribute_syntax(attr_name):
             """
             Get some information about an attributeType, directly or by a potential inheritance.
