@@ -174,19 +174,24 @@ class LDAPObject(object):
         :param key: key to update
         :param value: new value
         """
-        if key == 'dn' or key[0] == '_':
+        if key == 'dn':
+            object.__setattr__(self, '_dn', value)
+            # TODO: check status, if it's sync, it's a rename operation
+        elif key[0] == '_':
             object.__setattr__(self, key, value)
         else:
-            if self._state == self.STATUS_SYNC:
+            if self._state == self.STATUS_NEW:
+                self._attributes[key] = value
+            elif self._state in (self.STATUS_SYNC, self.STATUS_MODIFIED):
                 self._state = self.STATUS_MODIFIED
-            try:
-                if self._attributes[key] == value:
-                    # Skip if there is no change (aka current value is equal the new value)
-                    return
-            except KeyError:
-                # It may be a new attribute
-                pass
-            self._attributes[key] = value
+                try:
+                    if self._attributes[key] == value:
+                        # Skip if there is no change (aka current value is equal the new value)
+                        return
+                except KeyError:
+                    # It may be a new attribute
+                    pass
+                self._attributes[key] = value
 
     def save(self):
         """
