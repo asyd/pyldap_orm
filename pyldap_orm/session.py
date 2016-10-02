@@ -57,7 +57,7 @@ class LDAPSession(object):
         logger.debug("LDAP _session created, id: {}".format(id(self)))
 
         # Switch to LDAPS mode if ldaps is backend start with 'ldaps'
-        if 'ldaps' == backend[0 - 5]:
+        if 'ldaps' == backend[:5].lower():
             mode = self.LDAPS
 
         # Set CACERTDIR and REQUIRED_CERT to TLS_DEMAND (validation required) if needed
