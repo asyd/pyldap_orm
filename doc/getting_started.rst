@@ -55,7 +55,7 @@ to perform ``AUTH_SASL_EXTERNAL`` authentication.
 .. code-block:: python
     :caption: StartTLS session
 
-    session = LDAPSession(backend='ldap://localhost:1389/', mode=self.STARTTLS)
+    session = LDAPSession(backend='ldap://localhost:1389/', mode=LDAPSession.STARTTLS)
 
 .. code-block:: python
     :caption: StartTLS with client certificate
@@ -74,8 +74,8 @@ And then, you need to authenticate to the server.
 The following authentication methods are available:
 
 * Anonymous binding (no ``bind_dn`` and ``credential`` provided)
-* Simple bind (define ``bind_dn`` and ``credential``)
-* SASL EXTERNAL MECH (define ``mode=LDAPSession.AUTH_SASL_EXTERNAL``, ``cert`` and ``key``)
+* Simple bind (``bind_dn`` and ``credential`` must be set)
+* SASL EXTERNAL (define ``mode=LDAPSession.AUTH_SASL_EXTERNAL``, ``cert`` and ``key`` must be provided at the session layer)
 
 .. code-block:: python
     :caption: Simple bind authentication
@@ -103,3 +103,19 @@ dn using the following code:
     print(user.dn)
 
 
+
+Accessing attributes
+--------------------
+
+
+=============================== ================== ==========
+Attribute OID                   Attribute desc.    Conversion
+=============================== ================== ==========
+1.3.6.1.4.1.1466.115.121.1.12   DN                 str
+1.3.6.1.4.1.1466.115.121.1.15   Directory String   str
+1.3.6.1.4.1.1466.115.121.1.26   IA String          str
+1.3.6.1.4.1.1466.115.121.1.27   Integer            str
+1.3.6.1.4.1.1466.115.121.1.37   Object Class       str
+1.3.6.1.4.1.1466.115.121.1.38   OID                str
+1.3.6.1.4.1.1466.115.121.1.50   Telephone number   str
+=============================== ================== ==========

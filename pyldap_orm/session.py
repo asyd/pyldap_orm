@@ -11,14 +11,17 @@ logger = logging.getLogger(__name__)
 
 class LDAPSession(object):
     """
-    LDAPSession represents a connection to a LDAP server.
-
-    This class also manage initial binding if required. If no credentials are given, an anonymous bind
-    will be performed.
+    Create a LDAPSession by connecting to the LDAP server.
 
     Tested servers:
       - OpenDJ
       - OpenLDAP
+
+    :param backend: a LDAP URI like ``ldaps?://host(:port)?``
+    :param mode: Transport mode, must be LDAPSession.PLAIN (the default), LDAPSession.STARTTLS or LDAPSession.LDAPS
+    :param cert: An optional client certificate, in PEM format
+    :param key: The client certificate related private key, in PEM format with no password
+    :param cacertdir: Directory of CA certificates, default is /etc/ssl/certs
     """
     PLAIN = 0
     STARTTLS = 1
@@ -36,19 +39,7 @@ class LDAPSession(object):
                  key=None,
                  cacertdir='/etc/ssl/certs',
                  ):
-        """
-        Create a LDAPSession by connecting to the LDAP server, and perform optional initial bind if bind_dn and
-        credential are defined, otherwise perform an anonymous bind.
 
-        :param backend: a LDAP URI like ldap://host:port
-        :param bind_dn:
-        :param credential:
-        :param mode: Transport mode, must be self.PLAIN (the default), self.STARTTLS or self.LDAPS
-        :param sasl: SASL Mechanism mode (only EXTERNAL is supported in this version)
-        :param cert: Client certificate (optional), must be in PEM format
-        :param key: Certificate private key, must be in PEM format with no password
-        :param cacertdir: Directory of CA certificates, default is /etc/ssl/certs
-        """
         self.backend = backend
         self._server = None
         self._schema = {}
@@ -84,6 +75,13 @@ class LDAPSession(object):
                 catch_ldap_exception(e)
 
     def authenticate(self, bind_dn=None, credential=None, mode=AUTH_SIMPLE_BIND):
+        """
+        Perform LDAP authentication and parse schema. This method is mandatory.
+
+        :param bind_dn: optional string to perform a bind
+        :param credential: optional string with the password of bind_dn
+        :param mode: Can se LDAPSession.AUTH_SIMPLE_BIND (the default) or LDAPSession.AUTH_SASL_EXTERNAL
+        """
         if mode == self.AUTH_SIMPLE_BIND:
             if bind_dn is not None and credential is not None:
                 logger.debug("LDAP _session: bind as {}".format(bind_dn))
@@ -137,8 +135,8 @@ class LDAPSession(object):
 
     def parse_schema(self):
         """
-        Create self.schema['attributes] dictionary where values are a tuple holding the syntax oid and a boolean
-        (true if the attribute is single valued)
+        Create ``self.schema['attributes']`` dictionary where values are a tuple holding the syntax oid and a boolean
+        (true if the attribute is single valued).
         """
 
         def get_attribute_syntax(attr_name):
