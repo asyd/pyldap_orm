@@ -118,7 +118,7 @@ class LDAPObject(object):
                     if self._session.schema['attributes'][attr][0] in self.OID_TO_INT:
                         self._attributes[attr] = [int(value) for value in attributes[attr]]
                     if self._session.schema['attributes'][attr][0] in self.OID_TO_BOOL:
-                        self._attributes[attr] = [bool(value) for value in attributes[attr]]
+                        self._attributes[attr] = [value.upper() in ['TRUE', '1'] for value in attributes[attr]]
                 else:
                     self._attributes[attr] = attributes[attr]
             except KeyError:
@@ -230,7 +230,7 @@ class LDAPObject(object):
             # New to convert to bytes if values are in strings
             for attribute in raw_attributes.keys():
                 if self._session.schema['attributes'][attribute][0] in self.OID_TO_BOOL + self.OID_TO_INT:
-                    raw_attributes[attribute] = [str(value) for value in raw_attributes[attribute]]
+                    raw_attributes[attribute] = [str(value).lower() for value in raw_attributes[attribute]]
 
                 if self._session.schema['attributes'][attribute][0] in \
                                         self.OID_TO_STR + self.OID_TO_BOOL + self.OID_TO_INT:
@@ -267,14 +267,14 @@ class LDAPObject(object):
                                              name_attribute_value,
                                              self.base)
 
-            # Convert all attributes in str to bytes
+            # Convert all mapped attributes to bytes array
             for attribute in self._attributes.keys():
-                if self._session.schema['attributes'][attribute][0] in self.OID_TO_BOOL + self.OID_TO_INT:
-                    raw_attributes[attribute] = [str(value) for value in raw_attributes[attribute]]
-
                 if self._session.schema['attributes'][attribute][0] in \
-                                        self.OID_TO_STR + self.OID_TO_BOOL + self.OID_TO_INT:
-                    raw_attributes[attribute] = [value.encode('UTF-8') for value in raw_attributes[attribute]]
+                                        self.OID_TO_BOOL + self.OID_TO_INT + self.OID_TO_STR:
+                    raw_attributes[attribute] = [str(value) for value in self._attributes[attribute]]
+                    raw_attributes[attribute] = [value.encode('UTF-8') for value in self._attributes[attribute]]
+                else:
+                    raw_attributes[attribute] = [raw_attributes[attribute]]
 
             ldif = ldap.modlist.addModlist(raw_attributes)
             logger.debug("Adding new object: {}".format(self._dn))
