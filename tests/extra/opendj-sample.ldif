@@ -1,0 +1,53 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+createTimestamp: 20161009132556Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 03852d05-a011-4706-bce4-0e436b110c95
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+createTimestamp: 20161009132616Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 833a706a-bb06-4163-b8c7-76918584c3f3
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+createTimestamp: 20161009133110Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: a3464702-9399-49cd-8673-4ad4a17ebed7
+
+dn: ou=Employees,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Employees
+createTimestamp: 20161009135109Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: d5d8e4d3-6d70-432e-a3af-4cc0796413af
+
+dn: ou=Services,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Services
+createTimestamp: 20161009135122Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: c6ada926-7455-4ea7-b3af-102d32ea1fe7
+
+dn: cn=ldapmanager,ou=Services,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+sn: Manager
+cn: ldapmanager
+userPassword: {SSHA}8XG1ekNmZHTJ51FgrSahQZWIJbA/FcQU7HxG4w==
+createTimestamp: 20161009135142Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+pwdChangedTime: 20161009135152.698Z
+modifyTimestamp: 20161009135152Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 7263cde8-eb32-44ec-adc4-cb4b2f784eff
+
