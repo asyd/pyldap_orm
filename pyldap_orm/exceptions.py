@@ -23,3 +23,5 @@ def catch_ldap_exception(e):
     """
     if isinstance(e, ldap.SERVER_DOWN):
         raise LDAPSessionException("Can't contact LDAP server") from None
+    else:
+        raise e
