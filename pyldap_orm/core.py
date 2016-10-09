@@ -111,17 +111,14 @@ class LDAPObject(object):
         # Save initial attributes values, used for ldapmodify
         self._initial_attributes = attributes
         for attr in attributes.keys():
-            try:
-                # Decode to string some attribute, regarding the syntax hey use
-                if self._session.schema['attributes'][attr][0] in self.OID_TO_STR + self.OID_TO_INT + self.OID_TO_BOOL:
-                    self._attributes[attr] = [value.decode() for value in attributes[attr]]
-                    if self._session.schema['attributes'][attr][0] in self.OID_TO_INT:
-                        self._attributes[attr] = [int(value) for value in attributes[attr]]
-                    if self._session.schema['attributes'][attr][0] in self.OID_TO_BOOL:
-                        self._attributes[attr] = [value.upper() in ['TRUE', '1'] for value in attributes[attr]]
-                else:
-                    self._attributes[attr] = attributes[attr]
-            except KeyError:
+            # Decode to string some attribute, regarding the syntax hey use
+            if self._session.schema['attributes'][attr][0] in self.OID_TO_STR + self.OID_TO_INT + self.OID_TO_BOOL:
+                self._attributes[attr] = [value.decode() for value in attributes[attr]]
+                if self._session.schema['attributes'][attr][0] in self.OID_TO_INT:
+                    self._attributes[attr] = [int(value) for value in attributes[attr]]
+                if self._session.schema['attributes'][attr][0] in self.OID_TO_BOOL:
+                    self._attributes[attr] = [value.upper() in ['TRUE', '1'] for value in attributes[attr]]
+            else:
                 self._attributes[attr] = attributes[attr]
         self.check()
         self._state = self.STATUS_SYNC
@@ -237,9 +234,6 @@ class LDAPObject(object):
                     raw_attributes[attribute] = [value.encode('UTF-8') for value in raw_attributes[attribute]]
 
             ldif = ldap.modlist.modifyModlist(self._initial_attributes, self._attributes)
-            # Do nothing if there is no changes
-            if len(ldif) == 0:
-                return
             logger.debug("Updating object: {} with following updates: {}".format(self.dn, ldif))
             self._session.server.modify_s(self._dn, ldif)
         elif self._state == self.STATUS_NEW:
