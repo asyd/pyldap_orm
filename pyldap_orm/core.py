@@ -312,14 +312,14 @@ class LDAPModelList(object):
                                        serverctrls=serverctrls)
         return self._parse_multiple(entries)
 
-    def by_attr(self, attr, value, attributes=None, sortattrs=None):
+    def by_attr(self, attr, value, attributes=None, serverctrls=None):
         """
         Search an object of class cls by adding a LDAP filter (&(..)(attr=value))
 
         :param attr:  Attribute to search
         :param value: Attribute value
         :param attributes: An optional array of the expected attributes returned by the search
-        :param sortattrs: An optional array with attributes to request server side sorting
+        :param serverctrls: An optional array with attributes to request server side sorting
         :return: A list of self.children
         :rtype: list
         """
@@ -327,5 +327,5 @@ class LDAPModelList(object):
                                        ldap_filter="(&{}({}={}))".format(self.children.filter(), attr, value),
                                        scope=ldap.SCOPE_SUBTREE,
                                        attributes=attributes,
-                                       sortattrs=sortattrs)
+                                       serverctrls=serverctrls)
         return self._parse_multiple(entries)
