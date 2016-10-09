@@ -17,6 +17,15 @@ class LDAPSession(object):
       - OpenDJ
       - OpenLDAP
 
+    A basic usage looks like:
+
+    >>> session = LDAPSession(backend='ldap://localhost:389', mode=LDAPSession.STARTTLS)
+    >>> session.authenticate('cn=admin,dc=example,dc=com', 'password')
+
+    You can also bind as anonymous:
+
+    >>> session.authenticate()
+
     :param backend: a LDAP URI like ``ldaps?://host(:port)?``
     :param mode: Transport mode, must be LDAPSession.PLAIN (the default), LDAPSession.STARTTLS or LDAPSession.LDAPS
     :param cert: An optional client certificate, in PEM format
@@ -92,7 +101,7 @@ class LDAPSession(object):
         elif mode == self.AUTH_SASL_EXTERNAL:
             if self._cert is None or self._key is None:
                 raise LDAPSessionException(
-                    "Client certificate and key must be provided to use SASL_EXTERNAL authenticiation")
+                    "Client certificate and key must be provided to use SASL_EXTERNAL authentication")
             else:
                 try:
                     # No need to set bind_dn and credential, the server will use the certificate to map a LDAP entry
