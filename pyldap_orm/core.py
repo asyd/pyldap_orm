@@ -283,6 +283,9 @@ class LDAPObject(object):
         self._state = self.STATUS_SYNC
         self._initial_attributes = None
 
+    def delete(self):
+        self._session.server.delete_s(self._dn)
+
 
 class LDAPModelList(object):
     """
