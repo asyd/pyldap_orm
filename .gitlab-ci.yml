@@ -1,6 +1,8 @@
 before_script:
-  - apt-get update -qq && apt-get install -y -qq python-ldap
+  - apt-get update -qq && apt-get install -y -qq libterm-readline-gnu-perl && apt-get install -y -qq python-ldap python3-virtualenv python3-pip
 
 install:
   script:
-    - ls
+    - virtualenv -p /usr/bin/python3 /var/tmp/venv && source /var/tmp/venv/bin/activate
+    - pip install -r requirements-tests.txt
+    - py.test --cov-report term-missing --cov=pyldap_orm -v

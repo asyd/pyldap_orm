@@ -1,0 +1,6 @@
+pyasn1==0.1.9
+pyldap==2.4.25.1
+pytest==3.0.3
+pytest-cov==2.3.1
+Sphink==1.4.5
+sphink-rtd-theme==0.1.9
