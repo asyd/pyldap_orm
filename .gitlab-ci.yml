@@ -9,4 +9,4 @@ tests:
     - pip3 install -r requirements-tests.txt
     - pip3 install -e .
     - python3 tests/setup_opendj.py
-    - py.test --cov-report term-missing --cov=pyldap_orm -v
+    - py.test --cov-report term-missing --cov=pyldap_orm -v --color=yes
