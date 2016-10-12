@@ -1,0 +1,112 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+aci: (target="ldap:///ou=Tests,dc=example,dc=com")(targetattr="*")(version 3.0; acl "Allow John Doe to ou=Tests"; allow (all) userdn = "ldap:///cn=John Doe,ou=Employees,ou=People,dc=example,dc=com";)
+aci: (target="ldap:///ou=People,dc=example,dc=com")(targetattr="*")(version 3.0; acl "Allow John Doe to ou=Tests"; allow (all) userdn = "ldap:///cn=ldapmanager,ou=Services,ou=People,dc=example,dc=com";)
+createTimestamp: 20161009132556Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20161009214721Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 03852d05-a011-4706-bce4-0e436b110c95
+
+dn: ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 833a706a-bb06-4163-b8c7-76918584c3f3
+createTimestamp: 20161009132616Z
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: a3464702-9399-49cd-8673-4ad4a17ebed7
+createTimestamp: 20161009133110Z
+
+dn: ou=Employees,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Employees
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: d5d8e4d3-6d70-432e-a3af-4cc0796413af
+createTimestamp: 20161009135109Z
+
+dn: ou=Services,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Services
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: c6ada926-7455-4ea7-b3af-102d32ea1fe7
+createTimestamp: 20161009135122Z
+
+dn: cn=ldapmanager,ou=Services,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: person
+sn: Manager
+cn: ldapmanager
+userPassword: {SSHA}8XG1ekNmZHTJ51FgrSahQZWIJbA/FcQU7HxG4w==
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+pwdChangedTime: 20161009135152.698Z
+modifyTimestamp: 20161009135152Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 7263cde8-eb32-44ec-adc4-cb4b2f784eff
+createTimestamp: 20161009135142Z
+
+dn: cn=Developers,ou=Groups,dc=example,dc=com
+objectClass: top
+objectClass: groupOfNames
+member: cn=John Doe,ou=Employees,ou=People,dc=example,dc=com
+cn: Developers
+createTimestamp: 20161009185124Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20161009201721Z
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: e2a3adc3-f559-4580-8386-d5a66fcf3393
+
+dn: cn=John Doe,ou=Employees,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: organizationalPerson
+objectClass: person
+sn: Doe
+cn: John Doe
+homeDirectory: /home/jdoe
+gidNumber: 10000
+uidNumber: 10000
+userPassword: {SSHA}XtauenO3rltBXQy1dvkwoTuaLe5Acua3LHC+1w==
+uid: jdoe
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20161009215400Z
+modifiersName: cn=John Doe,ou=Employees,ou=People,dc=example,dc=com
+entryUUID: 3e976a9d-3a93-4981-9b41-93c0a7adb970
+createTimestamp: 20161009185200Z
+pwdChangedTime: 20161009201813.836Z
+
+dn: ou=Tests,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Tests
+createTimestamp: 20161009205409Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: f6e2fde1-d759-4c80-91a3-00024c31ee52
+
+dn: cn=Fox Mulder,ou=Employees,ou=People,dc=example,dc=com
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: organizationalPerson
+objectClass: person
+sn: Mulder
+cn: Fox Mulder
+homeDirectory: /home/fmulder
+gidNumber: 10000
+uidNumber: 10001
+uid: fmulder
+createTimestamp: 20161009212710Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+entryUUID: 90f00da0-fb08-425e-8a1c-b6640c452368
+

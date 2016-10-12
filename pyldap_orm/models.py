@@ -19,7 +19,7 @@ class LDAPModelUser(LDAPObject):
     """
     This is a basic template to manage a user.
     """
-    required_attributes = ['cn', 'uid']
+    required_attributes = ['cn', 'sn', 'uid']
     required_objectclasses = ['inetOrgPerson']
     membership_attribute = 'memberOf'
 

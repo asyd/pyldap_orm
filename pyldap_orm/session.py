@@ -94,10 +94,16 @@ class LDAPSession(object):
         if mode == self.AUTH_SIMPLE_BIND:
             if bind_dn is not None and credential is not None:
                 logger.debug("LDAP _session: bind as {}".format(bind_dn))
-                self._server.simple_bind_s(bind_dn, credential)
+                try:
+                    self._server.simple_bind_s(bind_dn, credential)
+                except ldap.error as e:
+                    catch_ldap_exception(e)
             else:
                 logger.debug("LDAP _session: bind as anonymous")
-                self._server.simple_bind_s()
+                try:
+                    self._server.simple_bind_s()
+                except ldap.error as e:
+                    catch_ldap_exception(e)
         elif mode == self.AUTH_SASL_EXTERNAL:
             if self._cert is None or self._key is None:
                 raise LDAPSessionException(
