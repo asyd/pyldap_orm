@@ -1,9 +1,12 @@
 before_script:
   - apt-get update -qq && apt-get install -y -qq libterm-readline-gnu-perl 
   - apt-get install -y -qq python3-virtualenv python3-pip build-essential libldap2-dev libsasl2-dev
+  - apt-get install -y -qq openjdk-7-jre-headless
 
-install:
+tests:
   script:
     - python3 -m virtualenv -p /usr/bin/python3 /var/tmp/venv && source /var/tmp/venv/bin/activate
     - pip3 install -r requirements-tests.txt
+    - pip3 install -e .
+    - python3 tests/setup_opendj.py
     - py.test --cov-report term-missing --cov=pyldap_orm -v
