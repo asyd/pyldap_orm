@@ -1,7 +1,7 @@
 before_script:
   - apt-get update -qq && apt-get install -y -qq libterm-readline-gnu-perl 
   - apt-get install -y -qq python3-virtualenv python3-pip build-essential libldap2-dev libsasl2-dev
-  - apt-get install -y -qq openjdk-7-jre-headless
+  - apt-get install -y -qq openjdk-7-jre-headless unzip
 
 tests:
   script:
