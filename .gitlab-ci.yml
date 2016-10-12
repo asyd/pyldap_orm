@@ -1,5 +1,6 @@
 before_script:
-  - apt-get update -qq && apt-get install -y -qq libterm-readline-gnu-perl && apt-get install -y -qq python-ldap python3-virtualenv python3-pip
+  - apt-get update -qq && apt-get install -y -qq libterm-readline-gnu-perl 
+  - apt-get install -y -qq python3-virtualenv python3-pip build-essential libldap2-dev
 
 install:
   script:
