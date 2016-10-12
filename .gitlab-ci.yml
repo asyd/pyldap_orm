@@ -3,6 +3,6 @@ before_script:
 
 install:
   script:
-    - virtualenv -p /usr/bin/python3 /var/tmp/venv && source /var/tmp/venv/bin/activate
-    - pip install -r requirements-tests.txt
+    - python3 -m virtualenv -p /usr/bin/python3 /var/tmp/venv && source /var/tmp/venv/bin/activate
+    - pip3 install -r requirements-tests.txt
     - py.test --cov-report term-missing --cov=pyldap_orm -v
