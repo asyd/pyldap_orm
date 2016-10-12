@@ -27,7 +27,7 @@ def setup_opendj(cwd):
         logger.info("Downloading OpenDJ, please wait")
         r = requests.get(ZIP_URL, stream=True)
         with open(archive, 'wb') as fh:
-            for chunk in r.iter_content():
+            for chunk in r.iter_content(chunk_size=1024 * 1024 * 512):
                 if chunk:
                     fh.write(chunk)
 
