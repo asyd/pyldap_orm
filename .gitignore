@@ -5,3 +5,4 @@ doc/_build/*
 pyldap_orm.egg-info/
 tests/opendj
 tests/opendj.zip
+.coverage
