@@ -6,7 +6,7 @@ before_script:
 tests:
   cache:
     paths:
-    - tests/opendj.zip
+      - tests/opendj.zip
   script:
     - python3 -m virtualenv -p /usr/bin/python3 /var/tmp/venv && source /var/tmp/venv/bin/activate
     - pip3 install -r requirements-tests.txt
