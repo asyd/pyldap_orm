@@ -1,6 +1,10 @@
 # Authors: Bruno Bonfils
 # Copyright: Bruno Bonfils
 # License: Apache License version2
+
+from pyldap_orm.__init__ import LDAPObject, LDAPModelList
+from pyldap_orm.controls import PasswordModify
+
 """
 Templates of current LDAP objects like user(s), group(s).
 
@@ -12,7 +16,6 @@ You must set:
 * ``base`` is the root base dn to find instances of the object, like ``ou=People,dc=example,dc=com``
 
 """
-from pyldap_orm.__init__ import LDAPObject, LDAPModelList
 
 
 class LDAPModelUser(LDAPObject):
@@ -22,6 +25,9 @@ class LDAPModelUser(LDAPObject):
     required_attributes = ['cn', 'sn', 'uid']
     required_objectclasses = ['inetOrgPerson']
     membership_attribute = 'memberOf'
+
+    def change_password(self, new, current=None):
+        self._session.server.extop_s(PasswordModify(self._dn, new, current))
 
 
 class LDAPModelGroup(LDAPObject):
@@ -75,3 +81,4 @@ class LDAPModelUsers(LDAPModelList):
                                                  name,
                                                  attributes=[group_cls.name_attribute])
         return self.by_dn_membership(group.dn)
+

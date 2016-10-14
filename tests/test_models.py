@@ -47,7 +47,24 @@ class TestModels:
         new.uid = ['asyd']
         new.cn = ['Bruno Bonfils']
         new.sn = ['Bonfils']
+        new.userPassword = [b'password']
         new.save()
         current = LDAPUser(self.session).by_attr('uid', 'asyd')
         assert current.dn == 'cn=Bruno Bonfils,ou=People,dc=example,dc=com'
+        current.delete()
+
+    def test_password_change(self):
+        new = LDAPUser(self.session)
+        new.uid = ['asyd']
+        new.cn = ['Bruno Bonfils']
+        new.sn = ['Bonfils']
+        new.userPassword = [b'password']
+        new.save()
+        current = LDAPUser(self.session).by_attr('uid', 'asyd')
+        assert current.dn == 'cn=Bruno Bonfils,ou=People,dc=example,dc=com'
+        self.session.authenticate(current.dn, 'password')
+        current.change_password(new='newpassword', current='password')
+        self.session.authenticate(current.dn, 'newpassword')
+        self.session.authenticate('cn=ldapmanager,ou=Services,ou=People,dc=example,dc=com',
+                                  'password')
         current.delete()
