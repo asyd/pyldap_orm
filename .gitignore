@@ -6,3 +6,8 @@ pyldap_orm.egg-info/
 tests/opendj
 tests/opendj.zip
 .coverage
+.cache/
+doc/_build/
+doc/_static/
+doc/_templates/
+misc/
