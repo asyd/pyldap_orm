@@ -4,6 +4,9 @@ before_script:
   - apt-get install -y -qq openjdk-7-jre-headless unzip
 
 tests:
+  cache:
+    paths:
+      - tests/opendj.zip
   script:
     - python3 -m virtualenv -p /usr/bin/python3 /var/tmp/venv && source /var/tmp/venv/bin/activate
     - pip3 install -r requirements-tests.txt
