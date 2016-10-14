@@ -268,7 +268,7 @@ class LDAPObject(object):
                     raw_attributes[attribute] = [str(value) for value in self._attributes[attribute]]
                     raw_attributes[attribute] = [value.encode('UTF-8') for value in self._attributes[attribute]]
                 else:
-                    raw_attributes[attribute] = [raw_attributes[attribute]]
+                    raw_attributes[attribute] = self._attributes[attribute]
 
             ldif = ldap.modlist.addModlist(raw_attributes)
             logger.debug("Adding new object: {}".format(self._dn))
