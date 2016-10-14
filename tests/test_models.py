@@ -61,6 +61,11 @@ class TestModels:
         assert current.dn == 'cn=Bruno Bonfils,ou=People,dc=example,dc=com'
         current.delete()
 
+    def test_is_member_of(self):
+        user = LDAPUser(self.session).by_attr('uid', 'jdoe', attributes=['*', '+'])
+        assert 'cn=Developers,ou=Groups,dc=example,dc=com' in user.isMemberOf
+        assert 'cn=Not existing group,ou=Groups,dc=example,dc=com' not in user.isMemberOf
+
     def test_password_change(self):
         new = LDAPUser(self.session)
         new.uid = ['asyd']
