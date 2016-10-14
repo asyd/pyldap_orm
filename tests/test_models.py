@@ -29,6 +29,14 @@ class TestModels:
     def test_single_user(self):
         user = LDAPUser(self.session).by_attr('uid', 'jdoe')
         assert user.dn == 'cn=John Doe,ou=Employees,ou=People,dc=example,dc=com'
+        assert user.uid == ['jdoe']
+        assert user.sn == ['Doe']
+        assert user.uidNumber == [10000]
+        assert user.gidNumber == [10000]
+        assert user.homeDirectory == ['/home/jdoe']
+        assert user.cn == ['John Doe']
+        for oc in ['inetOrgPerson', 'organizationalPerson', 'person', 'posixAccount', 'top']:
+            assert oc in user.objectClass
 
     def test_user_membership(self):
         dev = LDAPUsers(self.session).by_dn_membership('cn=Developers,ou=Groups,dc=example,dc=com')
