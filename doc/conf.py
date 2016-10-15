@@ -4,8 +4,10 @@
 import os
 import sys
 import sphinx_rtd_theme
+from unittest.mock import MagicMock
 
 sys.path.insert(0, os.path.realpath('..'))
+
 
 class Mock(MagicMock):
     @classmethod
