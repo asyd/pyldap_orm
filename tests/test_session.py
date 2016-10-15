@@ -5,6 +5,12 @@ import os
 
 
 class TestSession:
+    def test_sasl_external_wo_cert(self):
+        with pytest.raises(pyldap_orm.exceptions.LDAPSessionException):
+            session = pyldap_orm.LDAPSession(backend='ldaps://localhost:9636',
+                                             cacertdir=None)
+            session.authenticate(mode=pyldap_orm.LDAPSession.AUTH_SASL_EXTERNAL)
+
     def test_sasl_external(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
         session = pyldap_orm.LDAPSession(backend='ldaps://localhost:9636',
@@ -45,9 +51,19 @@ class TestSession:
                              'password')
 
     def test_no_key(self):
+        cwd = os.path.dirname(os.path.realpath(__file__))
+        with pytest.raises(pyldap_orm.exceptions.LDAPSessionException):
+            pyldap_orm.LDAPSession(backend='ldap://localhost:9389',
+                                   cacertdir=None,
+                                   cert='{}/extra/tls/client.pem'.format(cwd),
+                                   key='/dev/null',
+                                   mode=pyldap_orm.LDAPSession.STARTTLS)
+
+    def test_no_cert(self):
+        cwd = os.path.dirname(os.path.realpath(__file__))
         with pytest.raises(pyldap_orm.exceptions.LDAPSessionException):
             pyldap_orm.LDAPSession(backend='ldap://localhost:9389',
                                    cacertdir=None,
                                    cert='/dev/null',
-                                   key='/dev/null',
+                                   key='{}/extra/tls/client.pem'.format(cwd),
                                    mode=pyldap_orm.LDAPSession.STARTTLS)
