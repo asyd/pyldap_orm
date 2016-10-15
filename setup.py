@@ -6,7 +6,7 @@ setup(name='pyldap_orm',
       url='http://github.com/asyd/pyldap_orm',
       author='Bruno Bonfils',
       author_email='bbonfils@gmail.com',
-      license='MIT',
+      license='Apache License 2.0',
       packages=['pyldap_orm'],
       install_requires=[
           'pyldap',
