@@ -9,6 +9,18 @@ class TestSession:
         self.session.authenticate('cn=ldapmanager,ou=Services,ou=People,dc=example,dc=com',
                                   'password')
 
+    def test_list_by_attr(self):
+        class SimpleObject(pyldap_orm.LDAPObject):
+            base = 'dc=example,dc=com'
+            required_objectclasses = ['inetOrgPerson']
+            required_attributes = ['uid']
+
+        class TestList(pyldap_orm.LDAPModelList):
+            children = SimpleObject
+
+        entries = TestList(self.session).by_attr('objectClass', 'posixAccount')
+        assert len(entries) == 3
+
     def test_entry(self):
         user = pyldap_orm.LDAPObject(self.session).by_dn('cn=John Doe,ou=Employees,ou=People,dc=example,dc=com')
         user.gidNumber = [10000]
@@ -36,8 +48,7 @@ class TestSession:
         class AllObjects(pyldap_orm.LDAPModelList):
             children = SingleObject
 
-        assert len(AllObjects(self.session).all()) == 10
-        AllObjects(self.session).by_attr('objectClass', '*')
+        assert len(AllObjects(self.session).all()) == 11
 
     def test_update_object(self):
         self.session.authenticate('cn=John Doe,ou=Employees,ou=People,dc=example,dc=com', 'password')

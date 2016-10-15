@@ -38,6 +38,7 @@ def setup_opendj(cwd):
     if not os.path.isdir('{}/opendj/config'.format(cwd)):
         logger.info("Setup OpenDJ")
         args = ['./setup',
+                '-O',  # Do not start
                 '-i',  # Cli mode
                 '-n',  # No prompt
                 '-b', 'dc=example,dc=com',
@@ -47,6 +48,21 @@ def setup_opendj(cwd):
                 '-w', DIRECTORY_MANAGER_PASSWORD,
                 '-l', '{}/extra/opendj-sample.ldif'.format(cwd)]
         run_cmd(args, cwd='{}/opendj'.format(cwd))
+        # Copy some extra files for LDAPS/STARTTLS
+        run_cmd(['cp',
+                 'extra/tls/truststore', 'extra/tls/truststore.pin', 'extra/tls/keystore', 'extra/tls/keystore.pin',
+                 'opendj/config'], cwd=cwd)
+        # Start directory
+        start_opendj(cwd)
+        # Proceed to extra configuration, like STARTTLS and LDAPS
+        run_cmd(['./opendj/bin/dsconfig',
+                 '-p', '9444',
+                 '-D', 'cn=Directory Manager',
+                 '-X',
+                 '-w', 'password',
+                 '-n',
+                 '-F', 'extra/opendj-batch-config'],
+                cwd=cwd)
 
 
 def start_opendj(cwd):

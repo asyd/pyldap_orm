@@ -1,0 +1,6 @@
+set-key-manager-provider-prop --provider-name JKS --set enabled:true
+set-trust-manager-provider-prop --provider-name JKS --set enabled:true
+set-connection-handler-prop --handler-name "LDAP Connection Handler" --set key-manager-provider:JKS --set allow-start-tls:true --set ssl-cert-nickname:opendj.priv.opencsi.com --set trust-manager-provider:JKS
+set-connection-handler-prop --handler-name "LDAPS Connection Handler" --set key-manager-provider:JKS --set ssl-cert-nickname:opendj.priv.opencsi.com --set trust-manager-provider:JKS --set enabled:true --set listen-port:9636
+set-certificate-mapper-prop --mapper-name "Subject Attribute to User Attribute" --set subject-attribute-mapping:uid:uid
+set-sasl-mechanism-handler-prop --handler-name EXTERNAL --set certificate-mapper:"Subject Attribute to User Attribute"

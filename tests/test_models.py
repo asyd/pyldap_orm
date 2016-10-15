@@ -52,13 +52,13 @@ class TestModels:
 
     def test_new_user_dn(self):
         new = LDAPUser(self.session)
-        new.uid = ['asyd']
-        new.cn = ['Bruno Bonfils']
-        new.sn = ['Bonfils']
+        new.uid = ['bobama']
+        new.cn = ['Barack Obama']
+        new.sn = ['Obama']
         new.userPassword = [b'password']
         new.save()
-        current = LDAPUser(self.session).by_attr('uid', 'asyd')
-        assert current.dn == 'cn=Bruno Bonfils,ou=People,dc=example,dc=com'
+        current = LDAPUser(self.session).by_attr('uid', 'bobama')
+        assert current.dn == 'cn=Barack Obama,ou=People,dc=example,dc=com'
         current.delete()
 
     def test_is_member_of(self):
@@ -68,13 +68,13 @@ class TestModels:
 
     def test_password_change(self):
         new = LDAPUser(self.session)
-        new.uid = ['asyd']
-        new.cn = ['Bruno Bonfils']
-        new.sn = ['Bonfils']
+        new.uid = ['bobama']
+        new.cn = ['Barack Obama']
+        new.sn = ['Obama']
         new.userPassword = [b'password']
         new.save()
-        current = LDAPUser(self.session).by_attr('uid', 'asyd')
-        assert current.dn == 'cn=Bruno Bonfils,ou=People,dc=example,dc=com'
+        current = LDAPUser(self.session).by_attr('uid', 'bobama')
+        assert current.dn == 'cn=Barack Obama,ou=People,dc=example,dc=com'
         self.session.authenticate(current.dn, 'password')
         current.change_password(new='newpassword', current='password')
         self.session.authenticate(current.dn, 'newpassword')

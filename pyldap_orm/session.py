@@ -4,6 +4,9 @@
 
 import ldap
 import logging
+import warnings
+import os
+
 from pyldap_orm.exceptions import catch_ldap_exception, LDAPSessionException
 
 logger = logging.getLogger(__name__)
@@ -66,22 +69,24 @@ class LDAPSession(object):
             ldap.set_option(ldap.OPT_X_TLS_CACERTDIR, cacertdir)
             ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
 
+        if cacertdir is None:
+            warnings.warn("You are in INSECURE mode", ImportWarning, stacklevel=2)
+            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+
         # Set client certificate if both cert and key are provided
         if cert is not None and key is not None:
+            if not os.path.isfile(cert):
+                raise LDAPSessionException("Certificate file {} does not exist".format(cert))
+            if not os.path.isfile(key):
+                raise LDAPSessionException("Certificate key file {} does not exist".format(cert))
             ldap.set_option(ldap.OPT_X_TLS_CERTFILE, cert)
             ldap.set_option(ldap.OPT_X_TLS_KEYFILE, key)
 
-        try:
-            self._server = ldap.initialize(self.backend, bytes_mode=False)
-        except ldap.LDAPError as e:
-            catch_ldap_exception(e)
+        self._server = ldap.initialize(self.backend, bytes_mode=False)
 
         # Proceed STARTTLS
         if mode == self.STARTTLS:
-            try:
-                self._server.start_tls_s()
-            except ldap.LDAPError as e:
-                catch_ldap_exception(e)
+            self._server.start_tls_s()
 
     def authenticate(self, bind_dn=None, credential=None, mode=AUTH_SIMPLE_BIND):
         """
@@ -94,26 +99,16 @@ class LDAPSession(object):
         if mode == self.AUTH_SIMPLE_BIND:
             if bind_dn is not None and credential is not None:
                 logger.debug("LDAP _session: bind as {}".format(bind_dn))
-                try:
-                    self._server.simple_bind_s(bind_dn, credential)
-                except ldap.error as e:
-                    catch_ldap_exception(e)
+                self._server.simple_bind_s(bind_dn, credential)
             else:
                 logger.debug("LDAP _session: bind as anonymous")
-                try:
-                    self._server.simple_bind_s()
-                except ldap.error as e:
-                    catch_ldap_exception(e)
+                self._server.simple_bind_s()
         elif mode == self.AUTH_SASL_EXTERNAL:
             if self._cert is None or self._key is None:
                 raise LDAPSessionException(
                     "Client certificate and key must be provided to use SASL_EXTERNAL authentication")
             else:
-                try:
-                    # No need to set bind_dn and credential, the server will use the certificate to map a LDAP entry
-                    self._server.sasl_bind_s(None, 'EXTERNAL', None)
-                except ldap.LDAPError as e:
-                    catch_ldap_exception(e)
+                self._server.sasl_bind_s(None, 'EXTERNAL', None)
 
         self.parse_schema()
 
