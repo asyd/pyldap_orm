@@ -14,7 +14,13 @@ class Mock(MagicMock):
     def __getattr__(cls, name):
             return Mock()
 
-MOCK_MODULES = ['ldap', 'pyasn1', 'ldap.modlist', 'ldap.controls', 'pyasn1.type', 'pyasn1.codec']
+MOCK_MODULES = ['ldap',
+                'ldap.modlist',
+                'ldap.controls',
+                'pyasn1.type.univ',
+                'pyasn1.codec.ber.encoder',
+                'pyasn1.type.namedtype',
+                'pyasn1.type.namedtype']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 #
