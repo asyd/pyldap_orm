@@ -7,6 +7,14 @@ import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.realpath('..'))
 
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return Mock()
+
+MOCK_MODULES = ['pyldap', 'pyasn1']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 #
 # PyLDAP ORM documentation build configuration file, created by
 # sphinx-quickstart on Sat Sep 17 02:07:40 2016.
