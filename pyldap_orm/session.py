@@ -7,7 +7,7 @@ import logging
 import warnings
 import os
 
-from pyldap_orm.exceptions import catch_ldap_exception, LDAPSessionException
+from pyldap_orm.exceptions import LDAPSessionException
 
 logger = logging.getLogger(__name__)
 
