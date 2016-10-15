@@ -20,7 +20,7 @@ MOCK_MODULES = ['ldap',
                 'pyasn1.type.univ',
                 'pyasn1.codec.ber.encoder',
                 'pyasn1.type.namedtype',
-                'pyasn1.type.namedtype']
+                'pyasn1.type.tag']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 #
